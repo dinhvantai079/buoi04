@@ -12,7 +12,6 @@ public class Item
         get { return (double)Gia_tri / Trong_luong; }
     }
 
-    // Hàm khởi tạo cho lớp Item
     public Item(string ten, int trongLuong, int giaTri)
     {
         Ten = ten;
@@ -25,51 +24,50 @@ public class Knapsack
 {
     public int Tong_trong_luong { get; set; }
 
-    // Hàm khởi tạo cho lớp Knapsack
     public Knapsack(int tongTrongLuong)
     {
         Tong_trong_luong = tongTrongLuong;
     }
 
-    // Hàm giải bài toán cái ba lô
     public void Solve(List<Item> items)
     {
-        // Mảng để lưu giá trị tối ưu cho mỗi trọng lượng
         int[] dp = new int[Tong_trong_luong + 1];
-        // Mảng để lưu đồ vật đã chọn cho mỗi trọng lượng
         Item[] chosenItem = new Item[Tong_trong_luong + 1];
+        Dictionary<Item, int> itemCount = new Dictionary<Item, int>();
 
-        // Khởi tạo giá trị ban đầu
+        foreach (var item in items)
+        {
+            itemCount[item] = 0;
+        }
+
         for (int i = 0; i <= Tong_trong_luong; i++)
         {
             dp[i] = 0;
             chosenItem[i] = null;
         }
 
-        // Lặp qua từng trọng lượng từ 0 đến khả năng tối đa
         for (int w = 0; w <= Tong_trong_luong; w++)
         {
             foreach (var item in items)
             {
                 if (item.Trong_luong <= w)
                 {
-                    // Cập nhật giá trị tối ưu nếu chọn đồ vật này
-                    if (dp[w] < dp[w - item.Trong_luong] + item.Gia_tri)
+                    int prevWeight = w - item.Trong_luong;
+                    if (dp[w] < dp[prevWeight] + item.Gia_tri && (itemCount[item] < 2 || chosenItem[prevWeight] != item))
                     {
-                        dp[w] = dp[w - item.Trong_luong] + item.Gia_tri;
+                        dp[w] = dp[prevWeight] + item.Gia_tri;
                         chosenItem[w] = item;
+                        itemCount[item] = itemCount[item] + 1;
                     }
                 }
             }
         }
 
-        // Hiển thị kết quả
-        Console.WriteLine("Cac đo vat duoc chon:");
+        Console.WriteLine("Cac do vat duoc chon:");
         int currentWeight = 0;
         int totalValue = 0;
         int currentCapacity = Tong_trong_luong;
 
-        // Tính toán các đồ vật được chọn
         while (currentCapacity > 0)
         {
             if (chosenItem[currentCapacity] != null)
@@ -80,6 +78,8 @@ public class Knapsack
                 currentCapacity -= item.Trong_luong;
                 currentWeight += item.Trong_luong;
                 totalValue += item.Gia_tri;
+                itemCount[item]--;
+                if (itemCount[item] < 0) itemCount[item] = 0;
             }
             else
             {
@@ -87,7 +87,6 @@ public class Knapsack
             }
         }
 
-        // In tổng trọng lượng và giá trị
         Console.WriteLine(String.Format("\nTong trong luong: {0}", currentWeight));
         Console.WriteLine(String.Format("Tong gia tri: {0}", totalValue));
     }
@@ -97,7 +96,6 @@ class Program
 {
     static void Main()
     {
-        // Khởi tạo danh sách các đồ vật
         List<Item> items = new List<Item>
         {
             new Item("Item1", 20, 30),
@@ -107,14 +105,11 @@ class Program
             new Item("Item5", 90, 100)
         };
 
-        // Khối lượng tối đa của ba lô
-        int maxWeight = 100;
+        int maxWeight = 250;
 
-        // Tạo đối tượng Knapsack và giải quyết bài toán
         Knapsack knapsack = new Knapsack(maxWeight);
         knapsack.Solve(items);
 
-        // Đợi người dùng nhấn phím để kết thúc chương trình
         Console.ReadKey();
     }
 }
